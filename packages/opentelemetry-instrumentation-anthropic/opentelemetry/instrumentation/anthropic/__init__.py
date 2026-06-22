@@ -219,7 +219,11 @@ async def _aset_token_usage(
         cache_read_tokens = 0
         cache_creation_tokens = 0
 
-    input_tokens = prompt_tokens + cache_read_tokens + cache_creation_tokens
+    # Anthropic's usage.input_tokens is FRESH input — it EXCLUDES cache_read and
+    # cache_creation, which are reported separately and are additive. Keep
+    # input_tokens fresh so the downstream cost pipeline does not double-count
+    # cached tokens (it prices input at the fresh rate and cache separately).
+    input_tokens = prompt_tokens
 
     if token_histogram and isinstance(input_tokens, int) and input_tokens >= 0:
         token_histogram.record(
@@ -257,7 +261,9 @@ async def _aset_token_usage(
             },
         )
 
-    total_tokens = input_tokens + completion_tokens
+    total_tokens = (
+        input_tokens + cache_read_tokens + cache_creation_tokens + completion_tokens
+    )
 
     choices = 0
     content_attr = getattr(response, "content", None)
@@ -290,6 +296,11 @@ async def _aset_token_usage(
         SpanAttributes.GEN_AI_USAGE_CACHE_CREATION_INPUT_TOKENS,
         cache_creation_tokens,
     )
+    # Marker: declares that gen_ai.usage.input_tokens is fresh (additive — it
+    # excludes cache_read/cache_creation). The Paid cost pipeline uses this to
+    # price additively without double-counting; spans without the marker keep
+    # the legacy folded interpretation, so the rollout is backward compatible.
+    set_span_attribute(span, "gen_ai.usage.input_tokens_additive", True)
 
 
 @dont_throw
@@ -333,7 +344,11 @@ def _set_token_usage(
         cache_read_tokens = 0
         cache_creation_tokens = 0
 
-    input_tokens = prompt_tokens + cache_read_tokens + cache_creation_tokens
+    # Anthropic's usage.input_tokens is FRESH input — it EXCLUDES cache_read and
+    # cache_creation, which are reported separately and are additive. Keep
+    # input_tokens fresh so the downstream cost pipeline does not double-count
+    # cached tokens (it prices input at the fresh rate and cache separately).
+    input_tokens = prompt_tokens
 
     if token_histogram and isinstance(input_tokens, int) and input_tokens >= 0:
         token_histogram.record(
@@ -371,7 +386,9 @@ def _set_token_usage(
             },
         )
 
-    total_tokens = input_tokens + completion_tokens
+    total_tokens = (
+        input_tokens + cache_read_tokens + cache_creation_tokens + completion_tokens
+    )
 
     choices = 0
     content_attr = getattr(response, "content", None)
@@ -404,6 +421,11 @@ def _set_token_usage(
         SpanAttributes.GEN_AI_USAGE_CACHE_CREATION_INPUT_TOKENS,
         cache_creation_tokens,
     )
+    # Marker: declares that gen_ai.usage.input_tokens is fresh (additive — it
+    # excludes cache_read/cache_creation). The Paid cost pipeline uses this to
+    # price additively without double-counting; spans without the marker keep
+    # the legacy folded interpretation, so the rollout is backward compatible.
+    set_span_attribute(span, "gen_ai.usage.input_tokens_additive", True)
 
 
 def _with_chat_telemetry_wrapper(func):
