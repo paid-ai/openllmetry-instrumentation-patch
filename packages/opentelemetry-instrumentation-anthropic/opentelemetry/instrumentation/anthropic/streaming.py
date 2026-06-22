@@ -110,7 +110,7 @@ def _set_token_usage(
         cache_creation_tokens,
     )
     # Marker: gen_ai.usage.input_tokens is fresh/additive (see __init__.py).
-    set_span_attribute(span, "gen_ai.usage.input_tokens_additive", True)
+    set_span_attribute(span, "paid.usage.input_tokens_additive", True)
 
     set_span_attribute(
         span, GenAIAttributes.GEN_AI_RESPONSE_MODEL, complete_response.get("model")

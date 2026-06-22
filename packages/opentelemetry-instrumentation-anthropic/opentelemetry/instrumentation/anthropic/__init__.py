@@ -300,7 +300,7 @@ async def _aset_token_usage(
     # excludes cache_read/cache_creation). The Paid cost pipeline uses this to
     # price additively without double-counting; spans without the marker keep
     # the legacy folded interpretation, so the rollout is backward compatible.
-    set_span_attribute(span, "gen_ai.usage.input_tokens_additive", True)
+    set_span_attribute(span, "paid.usage.input_tokens_additive", True)
 
 
 @dont_throw
@@ -425,7 +425,7 @@ def _set_token_usage(
     # excludes cache_read/cache_creation). The Paid cost pipeline uses this to
     # price additively without double-counting; spans without the marker keep
     # the legacy folded interpretation, so the rollout is backward compatible.
-    set_span_attribute(span, "gen_ai.usage.input_tokens_additive", True)
+    set_span_attribute(span, "paid.usage.input_tokens_additive", True)
 
 
 def _with_chat_telemetry_wrapper(func):
