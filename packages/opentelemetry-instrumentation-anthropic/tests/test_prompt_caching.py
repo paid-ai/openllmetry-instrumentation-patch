@@ -82,11 +82,21 @@ def test_anthropic_prompt_caching_legacy(
     assert cache_creation_span.attributes["gen_ai.completion.0.role"] == "assistant"
     assert cache_read_span.attributes["gen_ai.completion.0.role"] == "assistant"
 
-    # assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1167
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 187
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1167
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 202
+
+    # De-fold contract: input_tokens is fresh, cache buckets are reported
+    # separately and additively, and the additive marker is set so the cost
+    # pipeline prices without double-counting.
+    assert cache_creation_span.attributes["gen_ai.usage.cache_creation_input_tokens"] == 1163
+    assert cache_creation_span.attributes["gen_ai.usage.cache_read_input_tokens"] == 0
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens_additive"] is True
+    assert cache_read_span.attributes["gen_ai.usage.cache_read_input_tokens"] == 1163
+    assert cache_read_span.attributes["gen_ai.usage.cache_creation_input_tokens"] == 0
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens_additive"] is True
 
     # verify metrics
     metrics_data = reader.get_metrics_data()
@@ -150,10 +160,10 @@ def test_anthropic_prompt_caching_with_events_with_content(
     cache_creation_span = spans[0]
     cache_read_span = spans[1]
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1167
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 187
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1167
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 202
 
     # verify metrics
@@ -316,10 +326,10 @@ def test_anthropic_prompt_caching_with_events_with_no_content(
     cache_creation_span = spans[0]
     cache_read_span = spans[1]
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1167
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 187
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1167
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 202
 
     # verify metrics
@@ -426,10 +436,10 @@ async def test_anthropic_prompt_caching_async_legacy(
     assert cache_creation_span.attributes["gen_ai.completion.0.role"] == "assistant"
     assert cache_read_span.attributes["gen_ai.completion.0.role"] == "assistant"
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 207
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 224
 
     # verify metrics
@@ -495,10 +505,10 @@ async def test_anthropic_prompt_caching_async_with_events_with_content(
     cache_creation_span = spans[0]
     cache_read_span = spans[1]
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 207
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 224
 
     # verify metrics
@@ -667,10 +677,10 @@ async def test_anthropic_prompt_caching_async_with_events_with_no_content(
     cache_creation_span = spans[0]
     cache_read_span = spans[1]
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 207
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 224
 
     # verify metrics
@@ -780,10 +790,10 @@ def test_anthropic_prompt_caching_stream_legacy(
     assert cache_creation_span.attributes["gen_ai.completion.0.role"] == "assistant"
     assert cache_read_span.attributes["gen_ai.completion.0.role"] == "assistant"
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 202
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 222
 
     # verify metrics
@@ -852,10 +862,10 @@ def test_anthropic_prompt_caching_stream_with_events_with_content(
     cache_creation_span = spans[0]
     cache_read_span = spans[1]
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 202
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 222
 
     # verify metrics
@@ -1029,10 +1039,10 @@ def test_anthropic_prompt_caching_stream_with_events_with_no_content(
     cache_creation_span = spans[0]
     cache_read_span = spans[1]
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 202
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1169
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 222
 
     # verify metrics
@@ -1142,10 +1152,10 @@ async def test_anthropic_prompt_caching_async_stream_legacy(
     assert cache_read_span.attributes["gen_ai.prompt.1.role"] == "user"
     assert text == cache_read_span.attributes["gen_ai.prompt.1.content"]
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1171
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 290
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1171
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 257
 
     # verify metrics
@@ -1215,10 +1225,10 @@ async def test_anthropic_prompt_caching_async_stream_with_events_with_content(
     cache_creation_span = spans[0]
     cache_read_span = spans[1]
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1171
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 290
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1171
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 257
 
     # verify metrics
@@ -1403,10 +1413,10 @@ async def test_anthropic_prompt_caching_async_stream_with_events_with_no_content
     cache_creation_span = spans[0]
     cache_read_span = spans[1]
 
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 1171
+    assert cache_creation_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_creation_span.attributes["gen_ai.usage.output_tokens"] == 290
 
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 1171
+    assert cache_read_span.attributes["gen_ai.usage.input_tokens"] == 4  # fresh input (de-folded; cache reported separately)
     assert cache_read_span.attributes["gen_ai.usage.output_tokens"] == 257
 
     # verify metrics

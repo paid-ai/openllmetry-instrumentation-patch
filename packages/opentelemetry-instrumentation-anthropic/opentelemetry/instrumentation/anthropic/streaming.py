@@ -85,14 +85,32 @@ def _set_token_usage(
         complete_response.get("usage", {}).get("cache_creation_input_tokens", 0) or 0
     )
 
-    input_tokens = prompt_tokens + cache_read_tokens + cache_creation_tokens
-    total_tokens = input_tokens + completion_tokens
+    # Anthropic's usage.input_tokens is FRESH input — it EXCLUDES cache_read and
+    # cache_creation, which are additive. Keep input_tokens fresh so the cost
+    # pipeline does not double-count cached tokens; total reflects all buckets.
+    input_tokens = prompt_tokens
+    total_tokens = (
+        input_tokens + cache_read_tokens + cache_creation_tokens + completion_tokens
+    )
 
     set_span_attribute(span, GenAIAttributes.GEN_AI_USAGE_INPUT_TOKENS, input_tokens)
     set_span_attribute(
         span, GenAIAttributes.GEN_AI_USAGE_OUTPUT_TOKENS, completion_tokens
     )
     set_span_attribute(span, SpanAttributes.LLM_USAGE_TOTAL_TOKENS, total_tokens)
+
+    # Emit cache buckets separately (the streaming path previously only folded
+    # them into input_tokens). Required so de-folded input doesn't drop cache.
+    set_span_attribute(
+        span, SpanAttributes.GEN_AI_USAGE_CACHE_READ_INPUT_TOKENS, cache_read_tokens
+    )
+    set_span_attribute(
+        span,
+        SpanAttributes.GEN_AI_USAGE_CACHE_CREATION_INPUT_TOKENS,
+        cache_creation_tokens,
+    )
+    # Marker: gen_ai.usage.input_tokens is fresh/additive (see __init__.py).
+    set_span_attribute(span, "gen_ai.usage.input_tokens_additive", True)
 
     set_span_attribute(
         span, GenAIAttributes.GEN_AI_RESPONSE_MODEL, complete_response.get("model")
