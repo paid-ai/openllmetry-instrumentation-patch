@@ -93,10 +93,10 @@ def test_anthropic_prompt_caching_legacy(
     # pipeline prices without double-counting.
     assert cache_creation_span.attributes["gen_ai.usage.cache_creation_input_tokens"] == 1163
     assert cache_creation_span.attributes["gen_ai.usage.cache_read_input_tokens"] == 0
-    assert cache_creation_span.attributes["gen_ai.usage.input_tokens_additive"] is True
+    assert cache_creation_span.attributes["paid.usage.input_tokens_additive"] is True
     assert cache_read_span.attributes["gen_ai.usage.cache_read_input_tokens"] == 1163
     assert cache_read_span.attributes["gen_ai.usage.cache_creation_input_tokens"] == 0
-    assert cache_read_span.attributes["gen_ai.usage.input_tokens_additive"] is True
+    assert cache_read_span.attributes["paid.usage.input_tokens_additive"] is True
 
     # verify metrics
     metrics_data = reader.get_metrics_data()
